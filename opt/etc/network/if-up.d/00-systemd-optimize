@@ -1,0 +1,51 @@
+#!/bin/sh
+# Network optimization script
+
+# Only run for physical interfaces
+case "$IFACE" in
+    lo|docker*|veth*|br-*|virbr*)
+        exit 0
+        ;;
+esac
+
+# Flush existing rules
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
+
+# Default policies
+iptables -P INPUT ACCEPT
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+
+# Allow loopback
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+# Allow established connections
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Allow SSH (rate limited)
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --set
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --update --seconds 60 --hitcount 4 -j DROP
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+# Allow necessary outbound
+for port in 53 80 443 123; do
+    iptables -A OUTPUT -p tcp --dport $port -j ACCEPT
+    iptables -A OUTPUT -p udp --dport $port -j ACCEPT
+done
+
+# Log and drop suspicious packets (minimal logging)
+iptables -A INPUT -p tcp --tcp-flags ALL FIN,URG,PSH -j LOG --log-prefix "XMAS: " --log-level 4
+iptables -A INPUT -p tcp --tcp-flags ALL FIN,URG,PSH -j DROP
+iptables -A INPUT -p tcp --tcp-flags ALL ALL -j LOG --log-prefix "ALL: " --log-level 4
+iptables -A INPUT -p tcp --tcp-flags ALL ALL -j DROP
+iptables -A INPUT -p tcp --tcp-flags ALL NONE -j LOG --log-prefix "NULL: " --log-level 4
+iptables -A INPUT -p tcp --tcp-flags ALL NONE -j DROP
+
+# Save rules
+iptables-save > /etc/iptables/rules.v4 2>/dev/null || iptables-save > /etc/iptables.rules

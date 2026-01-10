@@ -124,15 +124,15 @@ RUN useradd -r -s /bin/false -d /opt/sysaux sophia \
 
 # Copy phase scripts (these will be executed by entrypoint.sh)
 COPY --chown=root:root phases/*.sh /opt/sysaux/
-RUN chmod +x /opt/sysaux/*.sh 2>/dev/null || true
+RUN chmod +x /opt/sysaux/*.sh || true
 
 # Copy system files (to be added in build context)
-COPY --chown=root:root scripts/ /opt/sysaux/bin/ 2>/dev/null || true
-COPY --chown=root:root config/ /etc/sophia/ 2>/dev/null || mkdir -p /etc/sophia
+COPY --chown=root:root scripts/ /opt/sysaux/bin/
+RUN mkdir -p /etc/sophia
 
 # Make scripts executable
-RUN chmod +x /opt/sysaux/bin/* 2>/dev/null || true \
-    && chmod +x /opt/sysaux/*.py 2>/dev/null || true
+RUN chmod +x /opt/sysaux/bin/* || true \
+    && chmod +x /opt/sysaux/*.py || true
 
 # Create symlinks (only if binaries exist)
 RUN [ -f /opt/sysaux/bin/ascend ] && ln -sf /opt/sysaux/bin/ascend /usr/local/bin/ascend || true

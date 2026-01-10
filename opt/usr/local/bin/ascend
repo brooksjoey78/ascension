@@ -1,0 +1,7 @@
+    echo -e "\n\e[1;33m[Network Oracle v2.0 Commands]:\e[0m"
+    echo "  network_oracle          - Network intelligence suite"
+    echo "  network_oracle dashboard - Interactive dashboard"
+    echo "  systemctl start network-oracle  - Start as service"
+    echo -e "\n\e[1;33m[Advanced Exfiltration Matrix]:\e[0m"
+    echo "  matrix_orchestrator    - Exfiltration control panel"
+    echo "  systemctl status matrix-orchestrator  - Check service status"

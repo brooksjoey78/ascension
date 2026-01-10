@@ -1,0 +1,33 @@
+[Unit]
+Description=Network Oracle Intelligence Service
+After=network.target systemd-networkd.service
+Wants=network.target
+PartOf=systemd-networkd.service
+
+[Service]
+Type=forking
+User=root
+Group=root
+WorkingDirectory=/opt/sysaux
+ExecStart=/opt/sysaux/bin/network_oracle start-all
+ExecStop=/opt/sysaux/bin/network_oracle stop-all
+Restart=on-failure
+RestartSec=30
+StartLimitInterval=60
+StartLimitBurst=3
+PIDFile=/var/run/network_oracle/main.pid
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ReadWritePaths=/opt/sysaux/.network /var/run/network_oracle
+InaccessiblePaths=/home /root
+
+[Install]
+WantedBy=multi-user.target

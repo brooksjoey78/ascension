@@ -1,0 +1,5 @@
+# Local threat blacklist
+# Add IPs or domains to block
+127.0.0.2
+::1
+malicious.example.com

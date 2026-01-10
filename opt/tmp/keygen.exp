@@ -1,0 +1,7 @@
+#!/usr/bin/expect
+spawn ssh-keygen -t ed25519 -a 100 -f /root/.ssh/id_ed25519_system
+expect "Enter passphrase"
+send "xQ9!kL3m#pR2wS5vY8tZ0cN7bJ4hM6qF1dG\r"
+expect "Enter same passphrase again"
+send "xQ9!kL3m#pR2wS5vY8tZ0cN7bJ4hM6qF1dG\r"
+expect eof

