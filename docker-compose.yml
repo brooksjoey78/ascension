@@ -1,0 +1,144 @@
+# docker-compose.yml - Deus Ex Sophia Microservices for Windows 11 Docker Desktop
+version: '3.8'
+
+x-sophia-defaults: &sophia-defaults
+  restart: unless-stopped
+  networks:
+    - sophia-network
+  volumes:
+    - sophia-shared:/opt/sysaux/shared
+  environment:
+    - SOPHIA_ENV=production
+    - TZ=UTC
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  # Core system service
+  sophia-core:
+    <<: *sophia-defaults
+    image: deus-ex-sophia/core:5.0
+    container_name: sophia-core
+    hostname: sophia-core
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+      - IPC_LOCK
+    volumes:
+      - sophia-data:/opt/sysaux
+      - sophia-persistence:/usr/local/lib/.systemd-aux
+      - //var/run/docker.sock:/var/run/docker.sock  # Windows Docker socket mount
+    ports:
+      - "127.0.0.1:2222:22"  # SSH management
+      - "127.0.0.1:8080:8080"  # Dashboard
+      - "127.0.0.1:8443:8443"  # HTTPS Dashboard
+      - "127.0.0.1:53:53/udp"  # DNS UDP
+      - "127.0.0.1:53:53/tcp"  # DNS TCP
+    environment:
+      - SOPHIA_ROLE=core
+      - SOPHIA_AUTO_START=true
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "/opt/sysaux/bin/resilience.sh", "check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 2m
+    command: ["ascend", "start"]
+
+  # Network intelligence service
+  network-oracle:
+    <<: *sophia-defaults
+    image: deus-ex-sophia/network:5.0
+    container_name: network-oracle
+    hostname: network-oracle
+    network_mode: "service:sophia-core"
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - sophia-data:/opt/sysaux/.network
+      - network-logs:/opt/sysaux/logs/network
+    depends_on:
+      sophia-core:
+        condition: service_healthy
+    environment:
+      - SOPHIA_ROLE=network
+      - SOPHIA_NETWORK_MONITOR=all
+    command: ["network_oracle", "start-all"]
+
+  # Exfiltration matrix service
+  matrix-orchestrator:
+    <<: *sophia-defaults
+    image: deus-ex-sophia/matrix:5.0
+    container_name: matrix-orchestrator
+    hostname: matrix-orchestrator
+    volumes:
+      - sophia-data:/opt/sysaux/.matrix
+      - matrix-exfil:/opt/sysaux/.matrix/exfil
+      - matrix-keys:/opt/sysaux/.matrix/keys
+    depends_on:
+      network-oracle:
+        condition: service_started
+    environment:
+      - SOPHIA_ROLE=matrix
+      - SOPHIA_EXFIL_CHANNELS=dns,https,icmp
+    command: ["matrix_orchestrator", "start-all"]
+
+  # Web dashboard (optional, core already exposes)
+  dashboard:
+    <<: *sophia-defaults
+    image: deus-ex-sophia/dashboard:5.0
+    container_name: sophia-dashboard
+    hostname: sophia-dashboard
+    ports:
+      - "8081:8080"  # Alternative port to avoid conflict
+      - "8444:8443"
+    volumes:
+      - dashboard-html:/var/www/html
+      - dashboard-certs:/etc/ssl/sophia
+    depends_on:
+      - matrix-orchestrator
+    environment:
+      - SOPHIA_ROLE=dashboard
+      - ENABLE_SSL=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    command: ["python3", "-m", "http.server", "8080"]
+
+volumes:
+  sophia-data:
+    name: sophia-data
+  sophia-persistence:
+    name: sophia-persistence
+  sophia-shared:
+    name: sophia-shared
+  network-logs:
+    name: network-logs
+  matrix-exfil:
+    name: matrix-exfil
+  matrix-keys:
+    name: matrix-keys
+  dashboard-html:
+    name: dashboard-html
+  dashboard-certs:
+    name: dashboard-certs
+
+networks:
+  sophia-network:
+    name: sophia-network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+    enable_ipv6: false
