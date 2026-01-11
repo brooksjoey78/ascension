@@ -1,0 +1,19 @@
+{
+  "model": {
+    "preference": "llamacpp",
+    "llamacpp_model_path": "/opt/sysaux/ai/models/nous-hermes-llama2-13b.Q4_K_M.gguf",
+    "temperature": 0.7
+  },
+  "security": {
+    "require_confirmation": false,
+    "allowed_ips": ["127.0.0.1"],
+    "audit_logging": false
+  },
+  "monitoring": {
+    "check_interval": 300,
+    "adaptive_checks": true,
+    "response_time_threshold": 2000,
+    "memory_threshold": 0.85,
+    "alert_on_threats": false
+  }
+}

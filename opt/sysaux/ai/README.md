@@ -6,12 +6,11 @@
 
 This is the brain of the Deus Ex Sophia system - an AI that lives inside your infrastructure, sees everything happening in real-time, and can take action. Think of it as a super-smart system administrator that never sleeps, knows every detail about your servers, and can hack its way through any problem.
 
-
 ### **1. WHERE THE AI LIVES**
 
 **Physical Residence:**
 
-* **Primary Model File:** `/opt/sysaux/ai/models/llama-2-13b.Q4_K_M.gguf` (from attached files)
+* **Primary Model File:** `/opt/sysaux/ai/models/nous-hermes-llama2-13b.Q4_K_M.gguf` (from attached files)
 * **Ollama Model Directory:** `~/.ollama/models/` (if using Ollama)
 * **7GB Model Variant:** Likely `llama2:7b` or similar, stored at `~/.ollama/models/manifests/registry.ollama.ai/library/llama2/...`
 
@@ -47,7 +46,6 @@ self.llm = OllamaAPI(
     temperature=0.7
 )
 ```
-
 
 ## 📁 Directory Structure
 
