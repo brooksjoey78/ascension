@@ -1,4 +1,3 @@
-```python
 # /opt/sysaux/ai/instrumentation.py
 class SystemInstrumentation:
     """Complete system visibility for AI"""
@@ -75,4 +74,3 @@ class SystemInstrumentation:
                 self.process_change(change_type, path)
                 # Update AI context in real-time
                 self.ai_context.update_system_state(path, change_type)
-```

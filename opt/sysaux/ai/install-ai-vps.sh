@@ -1,4 +1,3 @@
-```bash
 #!/bin/bash
 # install-ai-vps.sh - Deus Ex Sophia AI Agent Installation
 
@@ -278,4 +277,3 @@ else
 fi
 
 echo "[✓] Deus Ex Sophia AI Agent installation complete!"
-```
