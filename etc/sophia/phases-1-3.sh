@@ -1,4 +1,3 @@
-PHASES 1-3
 #!/bin/bash
 # Ubuntu 22.04 Ascension v4.0 - Deus Ex Sophia
 # Phases 1-3: Foundation, Truth, and Persistence - PURIFIED
@@ -26,7 +25,7 @@ rsync -a /etc/systemd/system/ /opt/.sophia_rollback/systemd/ 2>/dev/null
 crontab -l > /opt/.sophia_rollback/cron_backup 2>/dev/null
 cp -r /etc/ssh/ssh* /opt/.sophia_rollback/ssh/ 2>/dev/null
 
-# Remove previous weak implementations
+# Remove previous implementations
 echo -e "  \e[1;33m[-] Removing previous installations...\e[0m"
 rm -rf /opt/sysaux 2>/dev/null
 rm -rf /usr/local/lib/sophia 2>/dev/null
@@ -35,7 +34,7 @@ rm -f /etc/cron.d/sophia_* 2>/dev/null
 rm -f /etc/systemd/system/sophia.service 2>/dev/null
 rm -f /usr/local/bin/ascend 2>/dev/null
 
-# Update system silently
+# Update system
 echo -e "  \e[1;33m[-] Updating system packages...\e[0m"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq > /dev/null 2>&1
@@ -73,7 +72,7 @@ SYSCTL_EOF
 
 sysctl -p > /dev/null 2>&1
 
-# === PHASE 2: CORE INSTALLATION WITH TRUTH - PURIFIED ===
+# === PHASE 2: CORE INSTALLATION ===
 echo -e "\n\e[1;36m[*] Phase 2: Core Installation with Truth\e[0m"
 
 # Create hidden directory structure
