@@ -1,0 +1,57 @@
+# Dockerfile.ai-core
+FROM python:3.10-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    curl \
+    wget \
+    libopenblas-dev \
+    libomp-dev \
+    libatomic1 \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create application directory
+WORKDIR /app
+
+# Copy requirements
+COPY requirements.ai.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.ai.txt
+
+# Copy AI application
+COPY ai/ .
+
+# Create directories
+RUN mkdir -p /models /knowledge /sandbox /logs
+
+# Download default model
+RUN curl -L "https://huggingface.co/TheBloke/Llama-2-13B-GGUF/resolve/main/llama-2-13b.Q4_K_M.gguf" \
+    -o /models/llama-2-13b.Q4_K_M.gguf
+
+# Set permissions
+RUN chmod -R 755 /app && \
+    chmod 755 /models /knowledge /sandbox
+
+# Create non-root user
+RUN useradd -r -s /bin/false sophia-ai
+RUN chown -R sophia-ai:sophia-ai /app /models /knowledge /sandbox /logs
+USER sophia-ai
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5m --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8080/api/v1/ai/health', timeout=5)"
+
+# Expose ports
+EXPOSE 8080 8765
+
+# Entrypoint
+ENTRYPOINT ["python", "main.py"]
+CMD ["--api"]

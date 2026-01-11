@@ -1,0 +1,200 @@
+```yaml
+# docker-compose.ai.yml
+version: '3.8'
+
+x-ai-defaults: &ai-defaults
+  restart: unless-stopped
+  networks:
+    - sophia-ai-network
+  volumes:
+    - sophia-ai-data:/opt/sysaux/ai
+    - sophia-data:/opt/sysaux:ro
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+  environment:
+    - SOPHIA_AI_ENABLED=true
+    - AI_MODEL_PATH=/models
+    - AI_KNOWLEDGE_PATH=/knowledge
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  # AI Core Service
+  sophia-ai-core:
+    <<: *ai-defaults
+    image: deus-ex-sophia/ai-core:1.0
+    container_name: sophia-ai-core
+    hostname: sophia-ai-core
+    privileged: true
+    cap_add:
+      - SYS_PTRACE      # For process inspection
+      - NET_ADMIN       # For network monitoring
+      - SYS_ADMIN       # For system monitoring
+    volumes:
+      - ai-models:/models
+      - ai-knowledge:/knowledge
+      - ai-sandbox:/sandbox
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /dev:/host/dev:ro
+      - /run:/host/run:ro
+    ports:
+      - "8081:8080"     # AI API
+      - "8766:8765"     # AI WebSocket
+    depends_on:
+      - sophia-core
+      - network-oracle
+      - matrix-orchestrator
+    environment:
+      - AI_ROLE=core
+      - SOPHIA_CORE_HOST=sophia-core
+      - NETWORK_ORACLE_HOST=network-oracle
+      - MATRIX_HOST=matrix-orchestrator
+      - LLM_MODEL=llama-2-13b.Q4_K_M.gguf
+      - CONTEXT_WINDOW=131072
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/ai/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 2m
+    command: ["python", "/app/main.py", "--api"]
+
+  # AI Model Service (Separate for scalability)
+  sophia-ai-models:
+    image: deus-ex-sophia/ai-models:1.0
+    container_name: sophia-ai-models
+    hostname: sophia-ai-models
+    volumes:
+      - ai-models:/models
+    ports:
+      - "50051:50051"  # gRPC for model serving
+    environment:
+      - AI_ROLE=models
+      - MODEL_SERVER=true
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:50051"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    command: ["python", "/app/model_server.py"]
+
+  # AI Knowledge Base (Vector Database)
+  sophia-ai-knowledge:
+    image: chromadb/chroma:latest
+    container_name: sophia-ai-knowledge
+    hostname: sophia-ai-knowledge
+    volumes:
+      - ai-knowledge:/chroma
+      - ai-knowledge-data:/data
+    ports:
+      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # AI Voice Service
+  sophia-ai-voice:
+    image: deus-ex-sophia/ai-voice:1.0
+    container_name: sophia-ai-voice
+    hostname: sophia-ai-voice
+    volumes:
+      - ai-voice-models:/models/voice
+      - ai-voice-cache:/cache
+    ports:
+      - "8082:8080"
+    environment:
+      - AI_ROLE=voice
+      - TTS_MODEL=tts.pth
+      - STT_MODEL=stt.pth
+    depends_on:
+      - sophia-ai-core
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # AI Dashboard
+  sophia-ai-dashboard:
+    image: deus-ex-sophia/ai-dashboard:1.0
+    container_name: sophia-ai-dashboard
+    hostname: sophia-ai-dashboard
+    volumes:
+      - ai-dashboard-static:/app/static
+    ports:
+      - "8083:8080"
+    environment:
+      - AI_ROLE=dashboard
+      - API_URL=http://sophia-ai-core:8080
+      - WS_URL=ws://sophia-ai-core:8765
+    depends_on:
+      - sophia-ai-core
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # AI Reverse Proxy (Unified access)
+  sophia-ai-proxy:
+    image: nginx:alpine
+    container_name: sophia-ai-proxy
+    hostname: sophia-ai-proxy
+    volumes:
+      - ./nginx/ai.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    ports:
+      - "443:443"   # HTTPS
+      - "80:80"     # HTTP redirect
+    depends_on:
+      - sophia-ai-core
+      - sophia-ai-dashboard
+      - sophia-ai-voice
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  sophia-ai-data:
+    name: sophia-ai-data
+  ai-models:
+    name: ai-models
+  ai-knowledge:
+    name: ai-knowledge
+  ai-knowledge-data:
+    name: ai-knowledge-data
+  ai-sandbox:
+    name: ai-sandbox
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=100M
+  ai-voice-models:
+    name: ai-voice-models
+  ai-voice-cache:
+    name: ai-voice-cache
+  ai-dashboard-static:
+    name: ai-dashboard-static
+
+networks:
+  sophia-ai-network:
+    name: sophia-ai-network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24
+          gateway: 172.22.0.1
+    internal: false
+```

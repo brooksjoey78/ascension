@@ -1,7 +1,5 @@
 #!/bin/bash
-# init.sh - Deus Ex Sophia Initialization
-
-set -e
+# init.sh - Deus Ex Sophia Initializationset -e
 
 echo "[*] Deus Ex Sophia Initialization v5.0"
 

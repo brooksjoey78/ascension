@@ -1,4 +1,4 @@
-# docker-compose.yml - Deus Ex Sophia Microservices for Windows 11 Docker Desktop
+# docker-compose.yml
 version: '3.8'
 
 x-sophia-defaults: &sophia-defaults
@@ -32,17 +32,12 @@ services:
     volumes:
       - sophia-data:/opt/sysaux
       - sophia-persistence:/usr/local/lib/.systemd-aux
-      - //var/run/docker.sock:/var/run/docker.sock  # Windows Docker socket mount
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - "127.0.0.1:2222:22"  # SSH management
-      - "127.0.0.1:8080:8080"  # Dashboard
-      - "127.0.0.1:8443:8443"  # HTTPS Dashboard
-      - "127.0.0.1:53:53/udp"  # DNS UDP
-      - "127.0.0.1:53:53/tcp"  # DNS TCP
     environment:
       - SOPHIA_ROLE=core
       - SOPHIA_AUTO_START=true
-      - DOCKER_HOST=unix:///var/run/docker.sock
     healthcheck:
       test: ["CMD", "/opt/sysaux/bin/resilience.sh", "check"]
       interval: 30s
@@ -91,15 +86,15 @@ services:
       - SOPHIA_EXFIL_CHANNELS=dns,https,icmp
     command: ["matrix_orchestrator", "start-all"]
 
-  # Web dashboard (optional, core already exposes)
+  # Web dashboard
   dashboard:
     <<: *sophia-defaults
     image: deus-ex-sophia/dashboard:5.0
     container_name: sophia-dashboard
     hostname: sophia-dashboard
     ports:
-      - "8081:8080"  # Alternative port to avoid conflict
-      - "8444:8443"
+      - "8080:8080"
+      - "8443:8443"
     volumes:
       - dashboard-html:/var/www/html
       - dashboard-certs:/etc/ssl/sophia
@@ -115,9 +110,53 @@ services:
       retries: 3
     command: ["python3", "-m", "http.server", "8080"]
 
+  # Database (optional)
+  sophia-db:
+    image: postgres:15-alpine
+    container_name: sophia-database
+    environment:
+      - POSTGRES_DB=sophia
+      - POSTGRES_USER=sophia
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    secrets:
+      - db_password
+    networks:
+      - sophia-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sophia"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis cache (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: sophia-redis
+    command: redis-server --requirepass $$REDIS_PASSWORD
+    environment:
+      - REDIS_PASSWORD_FILE=/run/secrets/redis_password
+    volumes:
+      - redis-data:/data
+    secrets:
+      - redis_password
+    networks:
+      - sophia-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   sophia-data:
     name: sophia-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data
   sophia-persistence:
     name: sophia-persistence
   sophia-shared:
@@ -126,12 +165,21 @@ volumes:
     name: network-logs
   matrix-exfil:
     name: matrix-exfil
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=100M
   matrix-keys:
     name: matrix-keys
   dashboard-html:
     name: dashboard-html
   dashboard-certs:
     name: dashboard-certs
+  postgres-data:
+    name: postgres-data
+  redis-data:
+    name: redis-data
 
 networks:
   sophia-network:
@@ -142,3 +190,9 @@ networks:
         - subnet: 172.20.0.0/24
           gateway: 172.20.0.1
     enable_ipv6: false
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  redis_password:
+    file: ./secrets/redis_password.txt
