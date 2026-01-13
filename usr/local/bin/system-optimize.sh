@@ -1,0 +1,96 @@
+#!/bin/bash
+# System Optimization Launcher
+
+VERSION="v4.0"
+SERVICE_NAME="systemd-networkd-helper.service"
+
+show_status() {
+    echo -e "\e[1;36mSystem Optimization Status $VERSION\e[0m"
+    echo "========================================"
+    
+    # Service status
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        echo -e "Service: \e[1;32mACTIVE\e[0m"
+    else
+        echo -e "Service: \e[1;31mINACTIVE\e[0m"
+    fi
+    
+    # Core module
+    if [ -f "/opt/sysaux/bin/core_truth.py" ]; then
+        echo -e "Core Module: \e[1;32mPRESENT\e[0m"
+    else
+        echo -e "Core Module: \e[1;31mMISSING\e[0m"
+    fi
+    
+    # Persistence layers
+    layers=0
+    [ -f /etc/systemd/system/$SERVICE_NAME ] && ((layers++))
+    [ -f /etc/cron.d/.system-maintain ] && ((layers++))
+    [ -f /etc/network/if-up.d/00-systemd-optimize ] && ((layers++))
+    [ -f /opt/sysaux/bin/resilience.sh ] && ((layers++))
+    
+    echo -e "Persistence Layers: \e[1;33m$layers/4\e[0m"
+    
+    # Last backup
+    last_backup=$(ls -t /usr/local/lib/.systemd-aux/backups/backup-*.tar.gz 2>/dev/null | head -1)
+    if [ -n "$last_backup" ]; then
+        backup_time=$(stat -c %y "$last_backup" 2>/dev/null | cut -d' ' -f1)
+        echo -e "Last Backup: \e[1;36m$backup_time\e[0m"
+    else
+        echo -e "Last Backup: \e[1;31mNONE\e[0m"
+    fi
+    
+    # Network status
+    if curl -s --max-time 5 https://www.cloudflare.com >/dev/null; then
+        echo -e "Network: \e[1;32mCONNECTED\e[0m"
+    else
+        echo -e "Network: \e[1;33mLIMITED\e[0m"
+    fi
+}
+
+case "$1" in
+    status)
+        show_status
+        ;;
+    start)
+        systemctl start "$SERVICE_NAME"
+        echo "Service started"
+        ;;
+    stop)
+        systemctl stop "$SERVICE_NAME"
+        echo "Service stopped"
+        ;;
+    restart)
+        systemctl restart "$SERVICE_NAME"
+        echo "Service restarted"
+        ;;
+    backup)
+        /opt/sysaux/bin/resilience.sh backup
+        ;;
+    check)
+        /opt/sysaux/bin/resilience.sh check
+        echo "Health check completed"
+        ;;
+    logs)
+        if [ -f "/opt/sysaux/logs/resilience.log" ]; then
+            tail -20 "/opt/sysaux/logs/resilience.log"
+        else
+            echo "No logs found"
+        fi
+        ;;
+    help|--help|-h)
+        echo "Usage: system-optimize [command]"
+        echo "Commands:"
+        echo "  status    - Show system status"
+        echo "  start     - Start optimization service"
+        echo "  stop      - Stop optimization service"
+        echo "  restart   - Restart optimization service"
+        echo "  backup    - Create backup"
+        echo "  check     - Run health check"
+        echo "  logs      - Show recent logs"
+        ;;
+    *)
+        show_status
+        ;;
+esac
+LAUNCHER_EOF
